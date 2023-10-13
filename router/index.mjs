@@ -105,3 +105,38 @@ router.put('/tree_nodes/:id', async (ctx) => {
         ctx.body = { success: false, message: 'Error updating a node' };
     }
 });
+
+// Delete a specific node by ID (DELETE)
+router.delete('/tree_nodes/:id', async (ctx) => {
+    try {
+        const nodeId = ctx.params.id;
+        const result = await client.query(
+            'SELECT * FROM tree_nodes WHERE node_id = $1',
+            [nodeId]
+        );
+
+        if (result.rows.length === 0) {
+            ctx.status = 404;
+            ctx.body = {
+                success: false,
+                message: 'Node not found',
+            };
+            return;
+        }
+
+        const deleteNode = await client.query(
+            'DELETE FROM tree_nodes WHERE node_id = $1',
+            [nodeId]
+        );
+
+        ctx.body = {
+            success: true,
+            message: 'Node successfully deleted',
+            deleteNode: nodeId,
+        };
+    } catch (error) {
+        console.error('Error deleting a node', error);
+        ctx.status = 500;
+        ctx.body = { success: false, message: 'Error deleting a node' };
+    }
+});
